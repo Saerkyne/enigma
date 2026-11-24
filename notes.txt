@@ -1,0 +1,53 @@
+Rotor I     - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            - EKMFLGDQVZNTOWYHXUSPAIBRCJ - Q->R increment left rotor
+
+Rotor II    - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            - AJDKSIRUXBLHWTMCQGZNPYFVOE - E->F increment left rotor
+
+Rotor III   - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            - BDFHJLCPRTXVZNYEIWGAKMUSQO - V->W increment left rotor
+
+Rotor IV    - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            - ESOVPZJAYQUIRHXLNFTGKDCMWB - J->K increment left rotor
+
+Rotor V     - ABCDEFGHIJKLMNOPQRSTUVWXYZ    
+            - VZBRGITYUPSDNHLXAWMJQOFECK - Z->A increment left rotor
+
+Reflector B - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            - YRUHQSLDPXNGOKMIEBFZCWVJAT
+
+Double Stepping anomaly 
+ - Right rotor always steps with each key press.
+ - Middle rotor steps when the right rotor shows it's notch letter (eg. Q for Rotor I) or if the middle rotor is at it's own notch letter.
+ - Left rotor steps when the middle rotor shows it's notch letter (eg. E for Rotor II)
+
+Ring Setting
+ - Determines the offset of the internal wiring relative to the rotor's position.
+ - Represented by a letter (A-Z) on the rotor, where A corresponds to no offset.
+ - notch positions are always the same, as the notch letters are on the ring. Rotating the ring will change internal rotor wiring, but not the notch positions relative to the letter window.
+ - formula for shifts changes: shift = (Window letter index - rotor ring setting index) wrapped around 0-25 so the effective shift is adjusted based on the ring setting.
+
+letter pressed, sent to plugboard, then through the rotors, reflected, back through the rotors, and finally through the plugboard again before lighting up the corresponding encrypted letter.
+
+Rotors are listed left to right, but the signal actually passes through them from right to left before being reflected and then back through them from left to right.
+
+rotors are stepped BEFORE each letter is encrypted
+Example: 
+
+Rotors that are not in position A will have internal wiring shifted that number of spaces. 
+
+Tracking shifts might be easier using a number mapping. 0=A, 1=B, and so on. Do a simple subtraction or addition for the shift, and then convert back to letters after the calculation.
+
+Steps for rotor encryption, after rotation: 
+Step 1: Letter in
+Step 2: Shift + according to rotor's position
+Step 3: encrypt through the rotor's wiring
+Step 4: Shift - according to rotor's position
+Step 5: Letter out
+
+Example: Rotor I shows B in the window, on Ring setting A
+ - Step 1: Letter in (e.g., A)
+ - Step 2: Shift + according to rotor's position (B = 1)
+ - Step 3: Encrypt through the rotor's wiring (B -> K)
+ - Step 4: Shift - according to rotor's position (K -> J)
+ - Step 5: Letter out (J)
