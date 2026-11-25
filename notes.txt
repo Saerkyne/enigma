@@ -47,7 +47,7 @@ Step 5: Letter out
 
 Example: Rotor I shows B in the window, on Ring setting A
  - Step 1: Letter in (e.g., A)
- - Step 2: Shift + according to rotor's position (B = 1)
+ - Step 2: Shift + according to rotor's position (B = 1) and rotor ring setting
  - Step 3: Encrypt through the rotor's wiring (B -> K)
- - Step 4: Shift - according to rotor's position (K -> J)
+ - Step 4: Shift - according to rotor's position (K -> J) and rotor ring setting
  - Step 5: Letter out (J)
