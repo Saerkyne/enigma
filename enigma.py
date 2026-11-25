@@ -7,6 +7,7 @@ class Rotor :
         self.notch = notch
         self.window_letter = window_letter
 
+
 rotor_I = Rotor(
     wiring_forward="EKMFLGDQVZNTOWYHXUSPAIBRCJ",
     wiring_backward="",
@@ -53,7 +54,7 @@ def get_backward_wiring(forward_wiring):
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
 
-def pass_through_rotor(input_letter, rotor, ring_setting, direction_reversed=False):
+def pass_through_rotor(input_letter, rotor, ring_setting, direction):
         
     # Step 1: Letter in
     letter_index = ord(input_letter) - ord('A')
@@ -63,9 +64,9 @@ def pass_through_rotor(input_letter, rotor, ring_setting, direction_reversed=Fal
     letter_index = (letter_index + shift) % 26
 
     # Step 3: Encrypt through the rotor's wiring
-    if direction_reversed:
+    if direction == "return":
         output_letter = rotor.wiring_backward[letter_index]
-    else:
+    elif direction == "forward":
         output_letter = rotor.wiring_forward[letter_index]
     letter_index = ord(output_letter) - ord('A')
 
