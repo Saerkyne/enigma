@@ -1,6 +1,16 @@
 import enigma
 
+rotors = [
+    enigma.rotor_I,
+    enigma.rotor_II,
+    enigma.rotor_III,
+    enigma.rotor_IV,
+    enigma.rotor_V
+]
 
+for rotor in rotors:
+    rotor.wiring_backward = enigma.get_backward_wiring(rotor.wiring_forward)
+    
 
 input_string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
