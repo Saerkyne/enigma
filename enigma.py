@@ -17,7 +17,7 @@ rotor_I = Rotor(
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
 
-def pass_through_rotor(input_letter, rotor, rotor_position, ring_setting, reversed):
+def pass_through_rotor(input_letter, rotor, ring_setting, reversed=False):
         
     # Step 1: Letter in
     letter_index = ord(input_letter) - ord('A')
