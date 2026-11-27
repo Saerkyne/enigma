@@ -80,7 +80,8 @@ class Plugboard:
                 return pair[1] if input_letter == pair[0] else pair[0]
         return input_letter
 
-
+ROTOR_NAMES = ["I", "II", "III", "IV", "V"]
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
     
@@ -174,25 +175,69 @@ def user_interaction():
     if len(rotor_choice) != 3:
         print("Invalid rotor choice. You must choose exactly 3 rotors.")
         exit()
+    rotor_choice = [rotor.upper() for rotor in rotor_choice]
+    if any(rotor not in ROTOR_NAMES for rotor in rotor_choice):
+        print(f"Invalid rotor choice. Valid options are: {', '.join(ROTOR_NAMES)}")
+        exit()
+    # Validate rotor choice against available rotor names
+    used_rotors = set()
+    for rotor in rotor_choice:
+        if rotor in used_rotors:
+            print(f"Invalid rotor choice. Rotor {rotor} is used more than once.")
+            exit()
+        used_rotors.add(rotor)
+    
     rotor_windows = input("Enter rotor starting window letters (e.g., A B C): ").split()
     if len(rotor_windows) != 3:
         print("Invalid rotor windows. You must enter exactly 3 letters.")
         exit()
+    rotor_windows = [w.upper() for w in rotor_windows]
+    if any(w not in ALPHABET for w in rotor_windows):
+        print(f"Invalid rotor windows. Valid options are: {', '.join(ALPHABET)}")
+        exit()
+    
     rotor_ring_settings = input("Enter rotor ring settings (e.g., A B C): ").split()
     if len(rotor_ring_settings) != 3:
         print("Invalid rotor ring settings. You must enter exactly 3 letters.")
+        exit()
+    rotor_ring_settings = [r.upper() for r in rotor_ring_settings]
+    if any(r not in ALPHABET for r in rotor_ring_settings):
+        print(f"Invalid rotor ring settings. Valid options are: {', '.join(ALPHABET)}")
         exit()
 
     plugboard_settings = input("Enter plugboard settings, 10 pairs spaced. If none, leave empty: ").split()
     if plugboard_settings and len(plugboard_settings) != 10:
         print("Invalid plugboard settings. You must enter exactly 10 pairs.")
         exit()
+    plugboard_settings = [p.upper() for p in plugboard_settings]
+    if any(len(p) != 2 or any(c not in ALPHABET for c in p) for p in plugboard_settings):
+        print(f"Invalid plugboard settings. Each pair must consist of two letters A-Z.")
+        exit()
+    # Check that each letter is only used once in the plugboard
+    used_letters = set()
+    for pair in plugboard_settings:
+        for letter in pair:
+            if letter in used_letters:
+                print(f"Invalid plugboard settings. Letter {letter} is used more than once.")
+                exit()
+            used_letters.add(letter)
 
     print("Enter message to encrypt: ")
     message = input()
 
-    if any(char not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" for char in message.upper()):
-        print("Invalid message. Only letters A-Z are allowed.")
-        exit()
+    ciphertext = ""
+    for char in message.upper():
+        if char == " ":
+            ciphertext += " "
+            continue
+        
+        if char not in ALPHABET:
+            print(f"Invalid character in message: {char}. Only letters A-Z are allowed.")
+            exit()
+        ciphertext += Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, char)
+    
 
-    print("Encrypted message: ", Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message))
+    print("Encrypted message: ", ciphertext)
+
+
+user_interaction()
