@@ -8,3 +8,5 @@ tests/.pytest_cache/
 *.pycache
 .vscode/
 .idea/
+build/
+
