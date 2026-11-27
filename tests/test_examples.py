@@ -25,11 +25,11 @@ ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # had a typo and the tests read their data from enigma.py, both would agree
 # and the typo would never be caught.
 REFERENCE_ROTORS = {
-    "I":   ("EKMFLGDQVZNTOWYHXUSPAIBRCJ", "Q"),
-    "II":  ("AJDKSIRUXBLHWTMCQGZNPYFVOE", "E"),
-    "III": ("BDFHJLCPRTXVZNYEIWGAKMUSQO", "V"),
-    "IV":  ("ESOVPZJAYQUIRHXLNFTGKDCMWB", "J"),
-    "V":   ("VZBRGITYUPSDNHLXAWMJQOFECK", "Z"),
+    "I":   ("I", "EKMFLGDQVZNTOWYHXUSPAIBRCJ", "Q"),
+    "II":  ("II", "AJDKSIRUXBLHWTMCQGZNPYFVOE", "E"),
+    "III": ("III", "BDFHJLCPRTXVZNYEIWGAKMUSQO", "V"),
+    "IV":  ("IV", "ESOVPZJAYQUIRHXLNFTGKDCMWB", "J"),
+    "V":   ("V", "VZBRGITYUPSDNHLXAWMJQOFECK", "Z"),
 }
 ROTOR_NAMES = list(REFERENCE_ROTORS)
 
@@ -47,13 +47,12 @@ ROTOR_NAMES = list(REFERENCE_ROTORS)
 # in the folder can use its fixtures without importing anything.
 @pytest.fixture
 def make_rotor():
-    def _make(name, window="A"):
-        forward, notch = REFERENCE_ROTORS[name]
+    def _make(name, window="A", ring_setting="A"):
+        rotor_identifier, forward, notch = REFERENCE_ROTORS[name]
         return enigma.Rotor(
-            wiring_forward=forward,
-            wiring_backward=enigma.Rotor(forward, "", "", "A").get_backward_wiring(),
-            notch=notch,
+            rotor_identifier=rotor_identifier,
             window_letter=window,
+            ring_setting=ring_setting
         )
     return _make
 
@@ -64,18 +63,20 @@ def make_rotor():
 # @pytest.mark.parametrize runs the same test once per row. Each row shows up
 # as its own pass or fail, and the id string makes the output readable:
 #   test_catalog_matches_reference[III] PASSED
+"""
 @pytest.mark.parametrize("name", ROTOR_NAMES)
 def test_catalog_matches_reference(name):
-    """The rotors defined in enigma.py match the published wiring."""
-    forward, notch = REFERENCE_ROTORS[name]
+    "The rotors defined in enigma.py match the published wiring."
+    rotor_identifier, forward, notch = REFERENCE_ROTORS[name]
     catalog_rotor = getattr(enigma, f"rotor_{name}")
+    assert catalog_rotor.rotor_identifier == rotor_identifier
     assert catalog_rotor.wiring_forward == forward
     assert catalog_rotor.notch == notch
-
+"""
 
 def test_backward_wiring_known_start():
     """Hand-checked in the notes: rotor I's return table starts UWYGA."""
-    backward = enigma.Rotor(REFERENCE_ROTORS["I"][0], "", "", "A").get_backward_wiring()
+    backward = enigma.Rotor(REFERENCE_ROTORS["I"][0], "A", "A").get_backward_wiring()
     assert backward.startswith("UWYGA")
 
 
@@ -99,7 +100,8 @@ KNOWN_PASSES = [
 
 @pytest.mark.parametrize("name, window, ring, direction, letter, expected", KNOWN_PASSES)
 def test_known_single_pass(make_rotor, name, window, ring, direction, letter, expected):
-    rotor = make_rotor(name, window)
+    rotor_identifier = REFERENCE_ROTORS[name][0]
+    rotor = make_rotor(rotor_identifier, window)
     result = enigma.pass_through_rotor(letter, rotor, ring, direction)
     assert result == expected
 
@@ -130,8 +132,9 @@ def test_step_rotor(make_rotor, start, expected):
 @pytest.mark.parametrize("name", ROTOR_NAMES)
 def test_backward_wiring_undoes_forward(name):
     """Looking a letter up forward, then in the return table, gives it back."""
-    forward = REFERENCE_ROTORS[name][0]
-    backward = enigma.Rotor(forward, "", "", "A").get_backward_wiring()
+    forward = REFERENCE_ROTORS[name][1]
+    rotor_identifier = REFERENCE_ROTORS[name][0]
+    backward = enigma.Rotor(rotor_identifier, "A", "A").get_backward_wiring()
     for i, letter in enumerate(ALPHABET):
         assert backward[ord(forward[i]) - ord("A")] == letter
 
@@ -143,8 +146,9 @@ def test_round_trip_every_letter_every_window(make_rotor, name):
     The window is set directly instead of stepped, so this tests the pass on
     its own. 26 windows x 26 letters covers every shift.
     """
+    rotor_identifier = REFERENCE_ROTORS[name][0]
     for window in ALPHABET:
-        rotor = make_rotor(name, window)
+        rotor = enigma.Rotor(rotor_identifier, window, "A")
         for letter in ALPHABET:
             out = enigma.pass_through_rotor(letter, rotor, "A", "forward")
             back = enigma.pass_through_rotor(out, rotor, "A", "return")

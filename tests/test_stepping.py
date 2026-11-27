@@ -11,11 +11,11 @@ ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # had a typo and the tests read their data from enigma.py, both would agree
 # and the typo would never be caught.
 REFERENCE_ROTORS = {
-    "I":   ("EKMFLGDQVZNTOWYHXUSPAIBRCJ", "Q"),
-    "II":  ("AJDKSIRUXBLHWTMCQGZNPYFVOE", "E"),
-    "III": ("BDFHJLCPRTXVZNYEIWGAKMUSQO", "V"),
-    "IV":  ("ESOVPZJAYQUIRHXLNFTGKDCMWB", "J"),
-    "V":   ("VZBRGITYUPSDNHLXAWMJQOFECK", "Z"),
+    "I":   ("I", "EKMFLGDQVZNTOWYHXUSPAIBRCJ", "Q"),
+    "II":  ("II", "AJDKSIRUXBLHWTMCQGZNPYFVOE", "E"),
+    "III": ("III", "BDFHJLCPRTXVZNYEIWGAKMUSQO", "V"),
+    "IV":  ("IV", "ESOVPZJAYQUIRHXLNFTGKDCMWB", "J"),
+    "V":   ("V", "VZBRGITYUPSDNHLXAWMJQOFECK", "Z"),
 }
 ROTOR_NAMES = list(REFERENCE_ROTORS)
 
@@ -34,12 +34,11 @@ ROTOR_NAMES = list(REFERENCE_ROTORS)
 @pytest.fixture
 def make_rotor():
     def _make(name, window="A"):
-        forward, notch = REFERENCE_ROTORS[name]
+        rotor_identifier, forward, notch = REFERENCE_ROTORS[name]
         return enigma.Rotor(
-            wiring_forward=forward,
-            wiring_backward=enigma.Rotor(forward, "", "", "A").get_backward_wiring(),
-            notch=notch,
+            rotor_identifier=rotor_identifier,
             window_letter=window,
+            ring_setting="A"
         )
     return _make
 
