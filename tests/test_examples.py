@@ -178,12 +178,11 @@ def test_only_the_gap_matters(make_rotor, name):
 # written down and waiting. When the machine exists, delete the skip marker
 # and replace the body with a call to your machine.
 MACHINE_VECTORS = [
-    pytest.param(("I", "II", "III"), "AAA", "AAA", "AAAAA", "BDZGO", id="rings AAA -> BDZGO"),
-    pytest.param(("I", "II", "III"), "BBB", "AAA", "AAAAA", "EWTYX", id="rings BBB -> EWTYX"),
+    pytest.param(("I", "II", "III"), "A A A", "A A A", "AAAAA", "BDZGO", id="rings AAA -> BDZGO"),
+    pytest.param(("I", "II", "III"), "B B B", "A A A", "AAAAA", "EWTYX", id="rings BBB -> EWTYX"),
 ]
 
-
-@pytest.mark.skip(reason="full machine not built yet")
 @pytest.mark.parametrize("order, rings, start, plaintext, expected", MACHINE_VECTORS)
 def test_machine_vectors(order, rings, start, plaintext, expected):
-    raise NotImplementedError
+    ciphertext = enigma.Encrypt(order, start.split(), rings.split(), [], plaintext)
+    assert ciphertext == expected

@@ -31,17 +31,50 @@ class Rotor :
             backward_wiring[index] = alphabet[i]
         return "".join(backward_wiring)
 
-encrypt_rotor_I = Rotor("I", "A", "A")
-encrypt_rotor_II = Rotor("II", "A", "A")
-encrypt_rotor_III = Rotor("III", "A", "A")
-encrypt_rotor_IV = Rotor("IV", "A", "A")
-encrypt_rotor_V = Rotor("V", "A", "A")
+class Reflector:
+    def __init__(self, reflector_identifier):
+        if reflector_identifier == "A":
+            self.wiring = "EJMZALYXVBWFCRQUONTSPIKHGD"
+        elif reflector_identifier == "B":
+            self.wiring = "YRUHQSLDPXNGOKMIEBFZCWVJAT"
+        elif reflector_identifier == "C":
+            self.wiring = "FVPJIAOYEDRZXWGCTKUQSBNMHL"
 
-decrypt_rotor_I = Rotor("I", "A", "A")
-decrypt_rotor_II = Rotor("II", "A", "A")
-decrypt_rotor_III = Rotor("III", "A", "A")
-decrypt_rotor_IV = Rotor("IV", "A", "A")
-decrypt_rotor_V = Rotor("V", "A", "A")
+    def reflect(self, input_letter):
+        index = ord(input_letter) - ord('A')
+        return self.wiring[index]
+
+class Plugboard:
+    def __init__(self):
+        self.pair_one = None
+        self.pair_two = None
+        self.pair_three = None
+        self.pair_four = None
+        self.pair_five = None
+        self.pair_six = None
+        self.pair_seven = None
+        self.pair_eight = None
+        self.pair_nine = None
+        self.pair_ten = None
+
+    def configure(self, mappings):
+        pairs = [
+            "pair_one", "pair_two", "pair_three", "pair_four", "pair_five",
+            "pair_six", "pair_seven", "pair_eight", "pair_nine", "pair_ten"
+        ]
+        for i, (a, b) in enumerate(mappings):
+            if i < 10:
+                setattr(self, pairs[i], (a, b))
+    
+    def encode(self, input_letter):
+        for pair in [
+            self.pair_one, self.pair_two, self.pair_three, self.pair_four, self.pair_five,
+            self.pair_six, self.pair_seven, self.pair_eight, self.pair_nine, self.pair_ten
+        ]:
+            if pair and input_letter in pair:
+                return pair[1] if input_letter == pair[0] else pair[0]
+        return input_letter
+
 
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
@@ -89,3 +122,74 @@ def step_rotors(right, middle, left):
         step_rotor(middle)
     if left_step:
         step_rotor(left)
+
+def pass_through_reflector(input_letter, reflector):
+    return reflector.reflect(input_letter)
+
+def pass_through_plugboard(input_letter, plugboard):
+    if plugboard is None:
+        return input_letter
+    
+    return plugboard.encode(input_letter)
+
+
+def Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message):
+    encrypt_plugboard = Plugboard()
+    encrypt_plugboard.configure([tuple(setting) for setting in plugboard_settings])
+
+    encrypt_left_rotor = Rotor(rotor_choice[0], rotor_windows[0], rotor_ring_settings[0])
+    encrypt_middle_rotor = Rotor(rotor_choice[1], rotor_windows[1], rotor_ring_settings[1])
+    encrypt_right_rotor = Rotor(rotor_choice[2], rotor_windows[2], rotor_ring_settings[2])
+
+    encrypt_reflector = Reflector("B")
+
+    ciphertext = ""
+    for letter in message.upper():
+        letter = pass_through_plugboard(letter, encrypt_plugboard)
+        step_rotors(encrypt_right_rotor, encrypt_middle_rotor, encrypt_left_rotor)
+        letter = pass_through_rotor(letter, encrypt_right_rotor, rotor_ring_settings[2], "forward")
+        letter = pass_through_rotor(letter, encrypt_middle_rotor, rotor_ring_settings[1], "forward")
+        letter = pass_through_rotor(letter, encrypt_left_rotor, rotor_ring_settings[0], "forward")
+        letter = pass_through_reflector(letter, encrypt_reflector)
+        letter = pass_through_rotor(letter, encrypt_left_rotor, rotor_ring_settings[0], "return")
+        letter = pass_through_rotor(letter, encrypt_middle_rotor, rotor_ring_settings[1], "return")
+        letter = pass_through_rotor(letter, encrypt_right_rotor, rotor_ring_settings[2], "return")
+        letter = pass_through_plugboard(letter, encrypt_plugboard)
+        ciphertext += letter
+
+    return ciphertext
+
+
+
+
+def user_interaction():
+
+
+    # Get encryption settings from user
+    print("Enter encryption settings:")
+    rotor_choice = input("Choose rotor order (e.g., I II III): ").split()
+    if len(rotor_choice) != 3:
+        print("Invalid rotor choice. You must choose exactly 3 rotors.")
+        exit()
+    rotor_windows = input("Enter rotor starting window letters (e.g., A B C): ").split()
+    if len(rotor_windows) != 3:
+        print("Invalid rotor windows. You must enter exactly 3 letters.")
+        exit()
+    rotor_ring_settings = input("Enter rotor ring settings (e.g., A B C): ").split()
+    if len(rotor_ring_settings) != 3:
+        print("Invalid rotor ring settings. You must enter exactly 3 letters.")
+        exit()
+
+    plugboard_settings = input("Enter plugboard settings, 10 pairs spaced. If none, leave empty: ").split()
+    if plugboard_settings and len(plugboard_settings) != 10:
+        print("Invalid plugboard settings. You must enter exactly 10 pairs.")
+        exit()
+
+    print("Enter message to encrypt: ")
+    message = input()
+
+    if any(char not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" for char in message.upper()):
+        print("Invalid message. Only letters A-Z are allowed.")
+        exit()
+
+    print("Encrypted message: ", Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message))
