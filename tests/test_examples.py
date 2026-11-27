@@ -51,7 +51,7 @@ def make_rotor():
         forward, notch = REFERENCE_ROTORS[name]
         return enigma.Rotor(
             wiring_forward=forward,
-            wiring_backward=enigma.get_backward_wiring(forward),
+            wiring_backward=enigma.Rotor(forward, "", "", "A").get_backward_wiring(),
             notch=notch,
             window_letter=window,
         )
@@ -75,7 +75,7 @@ def test_catalog_matches_reference(name):
 
 def test_backward_wiring_known_start():
     """Hand-checked in the notes: rotor I's return table starts UWYGA."""
-    backward = enigma.get_backward_wiring(REFERENCE_ROTORS["I"][0])
+    backward = enigma.Rotor(REFERENCE_ROTORS["I"][0], "", "", "A").get_backward_wiring()
     assert backward.startswith("UWYGA")
 
 
@@ -131,7 +131,7 @@ def test_step_rotor(make_rotor, start, expected):
 def test_backward_wiring_undoes_forward(name):
     """Looking a letter up forward, then in the return table, gives it back."""
     forward = REFERENCE_ROTORS[name][0]
-    backward = enigma.get_backward_wiring(forward)
+    backward = enigma.Rotor(forward, "", "", "A").get_backward_wiring()
     for i, letter in enumerate(ALPHABET):
         assert backward[ord(forward[i]) - ord("A")] == letter
 

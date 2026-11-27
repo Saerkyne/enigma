@@ -10,6 +10,14 @@ class Rotor :
     def at_notch(self):
         return self.window_letter == self.notch
 
+    def get_backward_wiring(self):
+        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        backward_wiring = [""] * 26
+        for i, letter in enumerate(self.wiring_forward):
+            index = ord(letter) - ord('A')
+            backward_wiring[index] = alphabet[i]
+        return "".join(backward_wiring)
+
 
 rotor_I = Rotor(
     wiring_forward="EKMFLGDQVZNTOWYHXUSPAIBRCJ",
@@ -46,13 +54,13 @@ rotor_V = Rotor(
     window_letter="A"
 )
 
-def get_backward_wiring(forward_wiring):
-    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    backward_wiring = [""] * 26
-    for i, letter in enumerate(forward_wiring):
-        index = ord(letter) - ord('A')
-        backward_wiring[index] = alphabet[i]
-    return "".join(backward_wiring)
+rotor_I.wiring_backward = rotor_I.get_backward_wiring()
+rotor_II.wiring_backward = rotor_II.get_backward_wiring()
+rotor_III.wiring_backward = rotor_III.get_backward_wiring()
+rotor_IV.wiring_backward = rotor_IV.get_backward_wiring()
+rotor_V.wiring_backward = rotor_V.get_backward_wiring()
+
+
 
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
@@ -80,26 +88,26 @@ def pass_through_rotor(input_letter, rotor, ring_setting, direction):
     # Step 5: Letter out
     return chr(letter_index + ord('A'))
 
-rotor_I.wiring_backward = get_backward_wiring(rotor_I.wiring_forward)
-rotor_II.wiring_backward = get_backward_wiring(rotor_II.wiring_forward)
-rotor_III.wiring_backward = get_backward_wiring(rotor_III.wiring_forward)
-rotor_IV.wiring_backward = get_backward_wiring(rotor_IV.wiring_forward)
-rotor_V.wiring_backward = get_backward_wiring(rotor_V.wiring_forward)
+
 
 def step_rotors(right, middle, left):
     right_notched = right.at_notch() if right else False
     middle_notched = middle.at_notch() if middle else False
+    middle_step = False
+    left_step = False
     
+    if middle and right_notched:
+        middle_step = True
+    if left and middle_notched:
+        left_step = True
+    if middle and left and middle_notched:
+        middle_step = True
+        left_step = True
     
     # Always advance the right rotor
     if right:
         step_rotor(right)
-
-    # If the right rotor was at its notch before rotating, step the middle rotor
-    if middle and right_notched:
+    if middle_step:
         step_rotor(middle)
-        if left and middle_notched:
-            step_rotor(left)
-    elif middle and left and middle_notched:
+    if left_step:
         step_rotor(left)
-        step_rotor(middle)

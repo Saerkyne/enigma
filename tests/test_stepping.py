@@ -37,7 +37,7 @@ def make_rotor():
         forward, notch = REFERENCE_ROTORS[name]
         return enigma.Rotor(
             wiring_forward=forward,
-            wiring_backward=enigma.get_backward_wiring(forward),
+            wiring_backward=enigma.Rotor(forward, "", "", "A").get_backward_wiring(),
             notch=notch,
             window_letter=window,
         )
