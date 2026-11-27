@@ -102,7 +102,7 @@ KNOWN_PASSES = [
 @pytest.mark.parametrize("name, window, ring, direction, letter, expected", KNOWN_PASSES)
 def test_known_single_pass(make_rotor, name, window, ring, direction, letter, expected):
     rotor_identifier = REFERENCE_ROTORS[name][0]
-    rotor = make_rotor(rotor_identifier, window, "A")
+    rotor = make_rotor(rotor_identifier, window, ring)
     result = enigma.pass_through_rotor(letter, rotor, direction)
     assert result == expected
 
@@ -186,5 +186,17 @@ MACHINE_VECTORS = [
 
 @pytest.mark.parametrize("order, rings, start, plaintext, expected", MACHINE_VECTORS)
 def test_machine_vectors(order, rings, start, plaintext, expected):
-    ciphertext = enigma.Encrypt(order, start.split(), rings.split(), [], plaintext)
+    ciphertext = enigma.encrypt(order, start.split(), rings.split(), [], plaintext)
     assert ciphertext == expected
+
+SETTINGS = (["I", "II", "III"], ["A", "A", "A"], ["A", "A", "A"], [])
+
+def test_spaces_do_not_step_the_rotors():
+    with_space = enigma.encrypt(*SETTINGS, "HELLO WORLD")
+    without_space = enigma.encrypt(*SETTINGS, "HELLOWORLD")
+    assert with_space[5] == " "
+    assert with_space.replace(" ", "") == without_space
+
+def test_invalid_character_raises():
+    with pytest.raises(ValueError):
+        enigma.encrypt(*SETTINGS, "HELLO!")

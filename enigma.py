@@ -236,5 +236,5 @@ def user_interaction():
 
     print("Encrypted message: ", ciphertext)
 
-
-user_interaction()
+if __name__ == "__main__":
+    user_interaction()
