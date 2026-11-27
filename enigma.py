@@ -137,7 +137,7 @@ def pass_through_plugboard(input_letter, plugboard):
     return plugboard.encode(input_letter)
 
 
-def Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message):
+def encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message):
     encrypt_plugboard = Plugboard()
     encrypt_plugboard.configure([tuple(setting) for setting in plugboard_settings])
 
@@ -149,6 +149,12 @@ def Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings
 
     ciphertext = ""
     for letter in message.upper():
+        if letter == " ":
+            ciphertext += " "
+            continue
+        if letter not in ALPHABET:
+            print(f"Invalid character in message: {letter}. Only letters A-Z are allowed.")
+            raise ValueError(f"Invalid character in message: {letter}. Only letters A-Z are allowed.")
         letter = pass_through_plugboard(letter, encrypt_plugboard)
         step_rotors(encrypt_right_rotor, encrypt_middle_rotor, encrypt_left_rotor)
         letter = pass_through_rotor(letter, encrypt_right_rotor, "forward")
@@ -225,16 +231,7 @@ def user_interaction():
     print("Enter message to encrypt: ")
     message = input()
 
-    ciphertext = ""
-    for char in message.upper():
-        if char == " ":
-            ciphertext += " "
-            continue
-        
-        if char not in ALPHABET:
-            print(f"Invalid character in message: {char}. Only letters A-Z are allowed.")
-            exit()
-        ciphertext += Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, char)
+    ciphertext = encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings, message)
     
 
     print("Encrypted message: ", ciphertext)
