@@ -76,7 +76,8 @@ def test_catalog_matches_reference(name):
 
 def test_backward_wiring_known_start():
     """Hand-checked in the notes: rotor I's return table starts UWYGA."""
-    backward = enigma.Rotor(REFERENCE_ROTORS["I"][0], "A", "A").get_backward_wiring()
+    rotor = enigma.Rotor(REFERENCE_ROTORS["I"][0], "A", "A")
+    backward = rotor.wiring_backward
     assert backward.startswith("UWYGA")
 
 
@@ -101,25 +102,25 @@ KNOWN_PASSES = [
 @pytest.mark.parametrize("name, window, ring, direction, letter, expected", KNOWN_PASSES)
 def test_known_single_pass(make_rotor, name, window, ring, direction, letter, expected):
     rotor_identifier = REFERENCE_ROTORS[name][0]
-    rotor = make_rotor(rotor_identifier, window)
-    result = enigma.pass_through_rotor(letter, rotor, ring, direction)
+    rotor = make_rotor(rotor_identifier, window, "A")
+    result = enigma.pass_through_rotor(letter, rotor, direction)
     assert result == expected
 
 
 def test_single_rotor_stepping_sequence(make_rotor):
     """Hand-checked: rotor I from window A, typing AAAAA forward gives JKCHB."""
-    rotor = make_rotor("I", "A")
+    rotor = make_rotor("I", "A", "A")
     output = ""
     for letter in "AAAAA":
         enigma.step_rotor(rotor)
-        output += enigma.pass_through_rotor(letter, rotor, "A", "forward")
+        output += enigma.pass_through_rotor(letter, rotor, "forward")
     assert output == "JKCHB"
 
 
 @pytest.mark.parametrize("start, expected", [("A", "B"), ("P", "Q"), ("Z", "A")])
 def test_step_rotor(make_rotor, start, expected):
     """Stepping moves the window on one letter, wrapping Z back to A."""
-    rotor = make_rotor("I", start)
+    rotor = make_rotor("I", start, "A")
     enigma.step_rotor(rotor)
     assert rotor.window_letter == expected
 
@@ -134,7 +135,7 @@ def test_backward_wiring_undoes_forward(name):
     """Looking a letter up forward, then in the return table, gives it back."""
     forward = REFERENCE_ROTORS[name][1]
     rotor_identifier = REFERENCE_ROTORS[name][0]
-    backward = enigma.Rotor(rotor_identifier, "A", "A").get_backward_wiring()
+    backward = enigma.Rotor(rotor_identifier, "A", "A").wiring_backward
     for i, letter in enumerate(ALPHABET):
         assert backward[ord(forward[i]) - ord("A")] == letter
 
@@ -146,12 +147,13 @@ def test_round_trip_every_letter_every_window(make_rotor, name):
     The window is set directly instead of stepped, so this tests the pass on
     its own. 26 windows x 26 letters covers every shift.
     """
+    
     rotor_identifier = REFERENCE_ROTORS[name][0]
     for window in ALPHABET:
-        rotor = enigma.Rotor(rotor_identifier, window, "A")
+        rotor = make_rotor(rotor_identifier, window, "A")
         for letter in ALPHABET:
-            out = enigma.pass_through_rotor(letter, rotor, "A", "forward")
-            back = enigma.pass_through_rotor(out, rotor, "A", "return")
+            forward = enigma.pass_through_rotor(letter, rotor, "forward")
+            back = enigma.pass_through_rotor(forward, rotor, "return")
             # The message after the comma is printed only if the assert fails,
             # so a failure tells you exactly which case broke.
             assert back == letter, f"rotor {name}, window {window}, letter {letter}"
@@ -163,11 +165,11 @@ def test_only_the_gap_matters(make_rotor, name):
 
     Window A ring A must behave exactly like window B ring B, and so on.
     """
-    base = make_rotor(name, "A")
-    expected = [enigma.pass_through_rotor(c, base, "A", "forward") for c in ALPHABET]
+    base = make_rotor(name, "A", "A")
+    expected = [enigma.pass_through_rotor(c, base, "forward") for c in ALPHABET]
     for k in range(1, 26):
-        same_gap = make_rotor(name, ALPHABET[k])
-        result = [enigma.pass_through_rotor(c, same_gap, ALPHABET[k], "forward") for c in ALPHABET]
+        same_gap = make_rotor(name, ALPHABET[k], ALPHABET[k])
+        result = [enigma.pass_through_rotor(c, same_gap, "forward") for c in ALPHABET]
         assert result == expected, f"rotor {name}, window and ring both {ALPHABET[k]}"
 
 

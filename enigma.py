@@ -7,23 +7,28 @@ class Rotor :
         if rotor_identifier == "I":
             self.wiring_forward = "EKMFLGDQVZNTOWYHXUSPAIBRCJ"
             self.notch = "Q"
+            self.wiring_backward = self.set_backward_wiring()
         elif rotor_identifier == "II":
             self.wiring_forward = "AJDKSIRUXBLHWTMCQGZNPYFVOE"
             self.notch = "E"
+            self.wiring_backward = self.set_backward_wiring()
         elif rotor_identifier == "III":
             self.wiring_forward = "BDFHJLCPRTXVZNYEIWGAKMUSQO"
             self.notch = "V"
+            self.wiring_backward = self.set_backward_wiring()
         elif rotor_identifier == "IV":
             self.wiring_forward = "ESOVPZJAYQUIRHXLNFTGKDCMWB"
             self.notch = "J"
+            self.wiring_backward = self.set_backward_wiring()
         elif rotor_identifier == "V":
             self.wiring_forward = "VZBRGITYUPSDNHLXAWMJQOFECK"
             self.notch = "Z"
+            self.wiring_backward = self.set_backward_wiring()
     
     def at_notch(self):
         return self.window_letter == self.notch
 
-    def get_backward_wiring(self):
+    def set_backward_wiring(self):
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         backward_wiring = [""] * 26
         for i, letter in enumerate(self.wiring_forward):
@@ -79,18 +84,18 @@ class Plugboard:
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
     
-def pass_through_rotor(input_letter, rotor, ring_setting, direction):
+def pass_through_rotor(input_letter, rotor, direction):
         
     # Step 1: Letter in
     letter_index = ord(input_letter) - ord('A')
 
     # Step 2: Shift + according to rotor's position and rotor ring setting
-    shift = (ord(rotor.window_letter) - ord(ring_setting))
+    shift = (ord(rotor.window_letter) - ord(rotor.ring_setting))
     letter_index = (letter_index + shift) % 26
 
     # Step 3: Encrypt through the rotor's wiring
     if direction == "return":
-        output_letter = rotor.get_backward_wiring()[letter_index]
+        output_letter = rotor.wiring_backward[letter_index]
     elif direction == "forward":
         output_letter = rotor.wiring_forward[letter_index]
     letter_index = ord(output_letter) - ord('A')
@@ -109,8 +114,6 @@ def step_rotors(right, middle, left):
     
     if middle and right_notched:
         middle_step = True
-    if left and middle_notched:
-        left_step = True
     if middle and left and middle_notched:
         middle_step = True
         left_step = True
@@ -147,13 +150,13 @@ def Encrypt(rotor_choice, rotor_windows, rotor_ring_settings, plugboard_settings
     for letter in message.upper():
         letter = pass_through_plugboard(letter, encrypt_plugboard)
         step_rotors(encrypt_right_rotor, encrypt_middle_rotor, encrypt_left_rotor)
-        letter = pass_through_rotor(letter, encrypt_right_rotor, rotor_ring_settings[2], "forward")
-        letter = pass_through_rotor(letter, encrypt_middle_rotor, rotor_ring_settings[1], "forward")
-        letter = pass_through_rotor(letter, encrypt_left_rotor, rotor_ring_settings[0], "forward")
+        letter = pass_through_rotor(letter, encrypt_right_rotor, "forward")
+        letter = pass_through_rotor(letter, encrypt_middle_rotor, "forward")
+        letter = pass_through_rotor(letter, encrypt_left_rotor, "forward")
         letter = pass_through_reflector(letter, encrypt_reflector)
-        letter = pass_through_rotor(letter, encrypt_left_rotor, rotor_ring_settings[0], "return")
-        letter = pass_through_rotor(letter, encrypt_middle_rotor, rotor_ring_settings[1], "return")
-        letter = pass_through_rotor(letter, encrypt_right_rotor, rotor_ring_settings[2], "return")
+        letter = pass_through_rotor(letter, encrypt_left_rotor, "return")
+        letter = pass_through_rotor(letter, encrypt_middle_rotor, "return")
+        letter = pass_through_rotor(letter, encrypt_right_rotor, "return")
         letter = pass_through_plugboard(letter, encrypt_plugboard)
         ciphertext += letter
 
