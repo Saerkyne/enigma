@@ -94,18 +94,12 @@ def step_rotors(right, middle, left):
     # Always advance the right rotor
     if right:
         step_rotor(right)
-        print(f"Right rotor stepped from {chr((ord(right.window_letter) - ord('A') - 1) % 26 + ord('A'))} to {right.window_letter}")
-    
+
     # If the right rotor was at its notch before rotating, step the middle rotor
     if middle and right_notched:
         step_rotor(middle)
-
-    # If the middle rotor was at its notch before rotating, step the left rotor
-    if left and middle_notched:
+        if left and middle_notched:
+            step_rotor(left)
+    elif middle and left and middle_notched:
         step_rotor(left)
-        # This also steps the middle rotor again due to the double-stepping mechanism
         step_rotor(middle)
-    else:
-        pass
-    
-    print(f"Rotor positions: Right={right.window_letter if right else 'N/A'}, Middle={middle.window_letter if middle else 'N/A'}, Left={left.window_letter if left else 'N/A'}")
