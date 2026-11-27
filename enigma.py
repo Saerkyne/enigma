@@ -6,6 +6,9 @@ class Rotor :
         self.wiring_backward = wiring_backward
         self.notch = notch
         self.window_letter = window_letter
+    
+    def at_notch(self):
+        return self.window_letter == self.notch
 
 
 rotor_I = Rotor(
@@ -53,6 +56,7 @@ def get_backward_wiring(forward_wiring):
 
 def step_rotor(rotor):
     rotor.window_letter = chr((ord(rotor.window_letter) - ord('A') + 1) % 26 + ord('A'))
+    
 
 def pass_through_rotor(input_letter, rotor, ring_setting, direction):
         
@@ -81,3 +85,27 @@ rotor_II.wiring_backward = get_backward_wiring(rotor_II.wiring_forward)
 rotor_III.wiring_backward = get_backward_wiring(rotor_III.wiring_forward)
 rotor_IV.wiring_backward = get_backward_wiring(rotor_IV.wiring_forward)
 rotor_V.wiring_backward = get_backward_wiring(rotor_V.wiring_forward)
+
+def step_rotors(right, middle, left):
+    right_notched = right.at_notch() if right else False
+    middle_notched = middle.at_notch() if middle else False
+    
+    
+    # Always advance the right rotor
+    if right:
+        step_rotor(right)
+        print(f"Right rotor stepped from {chr((ord(right.window_letter) - ord('A') - 1) % 26 + ord('A'))} to {right.window_letter}")
+    
+    # If the right rotor was at its notch before rotating, step the middle rotor
+    if middle and right_notched:
+        step_rotor(middle)
+
+    # If the middle rotor was at its notch before rotating, step the left rotor
+    if left and middle_notched:
+        step_rotor(left)
+        # This also steps the middle rotor again due to the double-stepping mechanism
+        step_rotor(middle)
+    else:
+        pass
+    
+    print(f"Rotor positions: Right={right.window_letter if right else 'N/A'}, Middle={middle.window_letter if middle else 'N/A'}, Left={left.window_letter if left else 'N/A'}")
